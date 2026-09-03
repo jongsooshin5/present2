@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google · Gemini 3.8 Flash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f8ff; --panel:#ffffff; --line:#dfe5f5; --text:#131a33; --muted:#5b6485;
+    --g-blue:#1a73e8; --g-purple:#8b5cf6; --g-teal:#12b5cb; --g-red:#d93025; --ok:#188038;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.55}
+  a{color:var(--g-blue);text-decoration:none}
+  .page{max-width:1240px;margin:0 auto;padding:40px 28px 56px}
+
+  .hero{position:relative;overflow:hidden;border-radius:24px;padding:48px 48px 40px;color:#fff;background:
+    radial-gradient(800px 420px at 0% 0%,rgba(26,115,232,.95),transparent 60%),
+    radial-gradient(700px 420px at 100% 100%,rgba(139,92,246,.9),transparent 60%),
+    linear-gradient(150deg,#1f2a5c,#101733)}
+  .badge{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);padding:6px 12px;border-radius:999px}
+  .hero h1{font-size:54px;line-height:1.1;margin:18px 0 8px;font-weight:900;letter-spacing:-.02em}
+  .hero h1 span{background:linear-gradient(90deg,#9fd3ff,#e9d5ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{font-size:20px;color:#dbe4ff;max-width:840px;margin:0 0 26px}
+  .meta-row{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:14px;color:#dbe4ff}
+  .meta-row b{color:#fff}
+  .quote{margin-top:26px;padding:16px 20px;border-left:4px solid #9fd3ff;background:rgba(255,255,255,.1);border-radius:0 12px 12px 0;font-size:17px}
+  .quote small{display:block;color:#c9d4ff;margin-top:4px;font-size:13px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 2px 10px rgba(19,26,51,.04)}
+  .stat .n{font-size:34px;font-weight:900;letter-spacing:-.02em;background:linear-gradient(90deg,var(--g-blue),var(--g-purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .n small{font-size:16px;color:var(--muted);font-weight:500;margin-left:4px;-webkit-text-fill-color:var(--muted)}
+  .stat .l{font-size:13px;color:var(--muted);margin-top:2px}
+
+  h2{font-size:24px;margin:34px 0 14px;font-weight:800;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:8px;height:26px;border-radius:4px;background:linear-gradient(180deg,var(--g-blue),var(--g-purple))}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 2px 10px rgba(19,26,51,.04)}
+  .card h3{margin:0 0 8px;font-size:17px}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+  .card ul{margin:8px 0 0;padding-left:18px;font-size:14.5px}
+  .card li{margin:4px 0}
+  .tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#e8f0fe;color:var(--g-blue);margin-bottom:8px}
+  .tag.purple{background:#f1eafe;color:#6d3fd6}
+  .tag.red{background:#fce8e6;color:var(--g-red)}
+  .tag.green{background:#e6f4ea;color:var(--ok)}
+
+  .levels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  .lv{border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;color:var(--muted)}
+  .lv b{display:block;color:var(--text);font-size:15px;margin-bottom:2px}
+  .lv.def{border-color:var(--g-blue);background:#f2f7ff}
+
+  .bench{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:0 2px 10px rgba(19,26,51,.04)}
+  .bench .row{display:grid;grid-template-columns:230px 1fr 64px;align-items:center;gap:12px;margin:9px 0}
+  .bench .name{font-size:14px}
+  .bench .name small{display:block;color:var(--muted);font-size:12px}
+  .bench .track{height:14px;border-radius:7px;background:#eceff9;overflow:hidden;position:relative}
+  .bench .fill{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--g-blue),var(--g-purple))}
+  .bench .fill.prev{position:absolute;top:0;left:0;background:#c5cde6}
+  .bench .val{font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+  .legend{display:flex;gap:18px;font-size:12.5px;color:var(--muted);margin-top:12px}
+  .legend i{display:inline-block;width:14px;height:8px;border-radius:4px;vertical-align:middle;margin-right:6px}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+
+  .cyber{border:1px solid #f3c7c2;background:linear-gradient(135deg,#fff5f4,#fff);border-radius:16px;padding:22px 24px}
+  .cyber h3{margin:0 0 6px;font-size:20px}
+  .cyber .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+  .cyber .kpi{background:#fff;border:1px solid #f3c7c2;border-radius:12px;padding:12px 14px}
+  .cyber .kpi .n{font-size:26px;font-weight:900;color:var(--g-red)}
+  .cyber .kpi .l{font-size:12.5px;color:var(--muted)}
+
+  .compare{background:linear-gradient(135deg,#eef3ff,#f5efff);border:1px solid var(--line);border-radius:16px;padding:18px 22px;margin-top:14px}
+
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  footer ul{margin:6px 0 0;padding-left:18px}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:14px;color:var(--muted)}
+  .nav .btn{background:var(--panel);border:1px solid var(--line);padding:8px 14px;border-radius:10px;color:var(--text)}
+  .nav .btn:hover{border-color:var(--g-blue)}
+
+  @media (max-width:900px){
+    .stats,.grid-3,.grid-2,.levels,.cyber .kpis{grid-template-columns:1fr 1fr}
+    .hero h1{font-size:38px}
+    .bench .row{grid-template-columns:1fr 1fr 56px}
+  }
+  @media (max-width:600px){
+    .stats,.grid-3,.grid-2,.levels,.cyber .kpis{grid-template-columns:1fr}
+    .hero{padding:30px 22px}
+  }
+  @media print{
+    .page{max-width:none;padding:0}
+    .nav{display:none}
+    @page{size:A4 landscape;margin:12mm}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="nav">
+    <a class="btn" href="01-meta-ai-muse-spark-1-3.html">← 이전: Meta AI Muse Spark 1.3</a>
+    <span>2 / 2 · Google Gemini</span>
+  </div>
+
+  <section class="hero">
+    <span class="badge">Google DeepMind · 2026.09.02 출시</span>
+    <h1>Google <span>Gemini 3.8 Flash</span> & 3.8 Flash Cyber</h1>
+    <p class="sub">3.7 Flash가 나온 지 불과 3주 만에 등장한 구글의 “가장 똑똑한 워크호스 모델”. 소프트웨어 엔지니어링·에이전트 작업·전문 분야 다단계 추론이 크게 좋아졌고, 취약점 탐지·자동 패치에 특화한 사이버 보안 변형 모델이 함께 공개됐습니다.</p>
+    <div class="meta-row">
+      <span>개발사 <b>Google DeepMind</b></span>
+      <span>입력 컨텍스트 <b>1,048,576 토큰</b></span>
+      <span>최대 출력 <b>65,536 토큰</b></span>
+      <span>입력 <b>텍스트·이미지·영상·오디오·PDF</b></span>
+      <span>6주 내 <b>세 번째 Flash</b> 릴리스</span>
+    </div>
+    <div class="quote">
+      “3.8 Flash는 더 열심히 일한다(works harder). 복잡한 과제에서 추론 단계를 더 잘게 쪼개고, 도구를 반복 호출하며, 결과를 스스로 검증한다.”
+      <small>— Google 공식 발표문 요지</small>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="n">90.8<small>%</small></div><div class="l">Terminal-Bench 2.1 · 3.7 Flash(81.6) 대비 +9.2p</div></div>
+    <div class="stat"><div class="n">61.6<small>%</small></div><div class="l">SWE-Bench Pro · 3.7 Flash(60.4) 대비 +1.2p</div></div>
+    <div class="stat"><div class="n">73.7<small>%</small></div><div class="l">DeepSWE v1.1 · 상당수 대형 프론티어 모델 상회</div></div>
+    <div class="stat"><div class="n">$0.75<small>/ $3.75</small></div><div class="l">입력 / 출력 100만 토큰당 · 3.7 Flash와 동일 (연말까지)</div></div>
+  </div>
+
+  <h2>핵심 변화: “더 열심히 일하는” Flash</h2>
+  <div class="grid-3">
+    <div class="card">
+      <span class="tag">에이전틱 추론</span>
+      <h3>작은 단계 + 반복 툴 호출 + 자체 검증</h3>
+      <p>어려운 다단계 목표에서 한 번에 답하지 않고 추론을 잘게 나눠 진행합니다. 도구를 여러 번 호출하고 중간 결과를 검증해 첫 시도 정확도를 높입니다. 대신 토큰을 더 쓰므로 아래 thinking level로 조절합니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag purple">코딩</span>
+      <h3>Google이 권장하는 SW 엔지니어링 기본 모델</h3>
+      <p>Antigravity 데모에서는 영상 이해 + 코딩을 묶어 3D 게임을 직접 만들고, 플레이해서 오류를 찾고, 코드를 고치는 루프를 자율 수행했습니다. 코딩·자율 에이전트·복잡 추론 용도의 새 기본 추천 모델입니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag green">가성비</span>
+      <h3>프론티어급 성능을 Flash 가격에</h3>
+      <p>여러 벤치마크에서 더 큰 모델을 앞서면서도 가격은 3.7 Flash 그대로입니다. 출시 기념 가격은 2026년 12월 31일까지 유지됩니다.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Thinking level (추론 강도 조절)</h3>
+    <div class="levels">
+      <div class="lv"><b>Low</b>지연시간이 중요한 작업. 실시간 채팅, 초안 작성, 빠른 데이터 분석, 인시던트 대응 파이프라인</div>
+      <div class="lv def"><b>Medium (기본값)</b>대부분의 작업에 최적. 복잡한 코드·에이전트 용도에 권장, 첫 시도 정확도 향상</div>
+      <div class="lv"><b>High</b>추론·툴 오케스트레이션 최대화. 심층 추론, 수학, 어려운 다단계 작업</div>
+    </div>
+  </div>
+
+  <h2>벤치마크</h2>
+  <div class="grid-2">
+    <div class="bench">
+      <div class="row"><div class="name">Terminal-Bench 2.1<small>터미널 에이전트 작업</small></div><div class="track"><div class="fill prev" style="width:81.6%"></div><div class="fill" style="width:90.8%"></div></div><div class="val">90.8</div></div>
+      <div class="row"><div class="name">DeepSWE v1.1<small>장기 자율 코딩</small></div><div class="track"><div class="fill" style="width:73.7%"></div></div><div class="val">73.7</div></div>
+      <div class="row"><div class="name">SWE-Bench Pro<small>실제 이슈 해결</small></div><div class="track"><div class="fill prev" style="width:60.4%"></div><div class="fill" style="width:61.6%"></div></div><div class="val">61.6</div></div>
+      <div class="row"><div class="name">SWE-Atlas<small>코드베이스 이해</small></div><div class="track"><div class="fill" style="width:51.9%"></div></div><div class="val">51.9</div></div>
+      <div class="row"><div class="name">CharXiv<small>차트·도표 멀티모달</small></div><div class="track"><div class="fill" style="width:86.2%"></div></div><div class="val">86.2</div></div>
+      <div class="row"><div class="name">Humanity's Last Exam<small>최고 난도 종합</small></div><div class="track"><div class="fill" style="width:45.4%"></div></div><div class="val">45.4</div></div>
+      <div class="row"><div class="name">τ³-bench Banking<small>도구 사용 에이전트</small></div><div class="track"><div class="fill" style="width:38.1%"></div></div><div class="val">38.1</div></div>
+      <div class="legend"><span><i style="background:linear-gradient(90deg,#1a73e8,#8b5cf6)"></i>Gemini 3.8 Flash</span><span><i style="background:#c5cde6"></i>Gemini 3.7 Flash (공개된 항목만)</span></div>
+    </div>
+    <div class="card">
+      <h3>어디서 쓸 수 있나</h3>
+      <table>
+        <tr><th>대상</th><th>경로</th></tr>
+        <tr><td><b>일반 사용자</b></td><td>Gemini 앱 (AI Pro·Ultra 구독자), 검색 AI Mode, Google Sheets의 Gemini</td></tr>
+        <tr><td><b>개발자</b></td><td>Gemini API, Google AI Studio, Antigravity, Gemini CLI</td></tr>
+        <tr><td><b>기업</b></td><td>Gemini Enterprise, Vertex AI(Gemini Enterprise Agent Platform)</td></tr>
+        <tr><td><b>보안 조직</b></td><td>3.8 Flash Cyber · Fairwind Program 승인 기관 한정</td></tr>
+      </table>
+      <p style="margin-top:12px">가격은 입력 $0.75 · 출력 $3.75(100만 토큰당). 캐시·배치 할인은 기존 Flash 정책과 동일하게 적용됩니다.</p>
+    </div>
+  </div>
+
+  <h2>Gemini 3.8 Flash Cyber</h2>
+  <div class="cyber">
+    <span class="tag red">신뢰 방어자 전용</span>
+    <h3>취약점 찾기부터 검증된 패치 생성까지</h3>
+    <p style="margin:0;color:var(--muted)">3.8 Flash와 같은 기반 지능을 취약점 발견·자동 패치에 특화한 변형입니다. 취약점을 찾은 뒤 검증된 고품질 코드 수정안을 자동 생성합니다. 공격 악용 우려 때문에 일반 공개하지 않고 새로 만든 <b>Fairwind Program</b>을 통해서만 제공합니다.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="n">2.6×</div><div class="l">Chrome 취약점 정답 패치 수 · Chrome 보안팀이 평가한 최고 상용 모델 대비</div></div>
+      <div class="kpi"><div class="n">70%+</div><div class="l">구글 내부 실제 취약점 벤치마크 성공률 · 20개 프로그래밍 언어</div></div>
+      <div class="kpi"><div class="n">47.2%</div><div class="l">Collinear CWE-Bench pass@1 · 선두 프론티어 모델(47.8%)과 대등</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <b>대상 기관</b>
+        <ul style="margin:6px 0 0;padding-left:18px;font-size:14.5px">
+          <li>정부·공공 보안 당국</li>
+          <li>핵심 인프라 운영사</li>
+          <li>오픈소스·상용 소프트웨어 유지관리자</li>
+        </ul>
+      </div>
+      <div>
+        <b>참여 조건</b>
+        <ul style="margin:6px 0 0;padding-left:18px;font-size:14.5px">
+          <li>사용자 단위 인증 + 피싱 방지 MFA 등 보안 모범 사례 적용</li>
+          <li>내부 보안·인시던트 대응·침투 테스트 팀에게만 접근 허용</li>
+          <li>임직원 접근·사용 이력 추적</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare">
+    <h3 style="margin:0 0 10px">같은 날 나온 경쟁작과 한눈에 비교 · Meta Muse Spark 1.3</h3>
+    <table>
+      <tr><th>항목</th><th class="num">Gemini 3.8 Flash</th><th class="num">Muse Spark 1.3</th></tr>
+      <tr><td>Terminal-Bench 2.1</td><td class="num"><b>90.8</b></td><td class="num">88.8</td></tr>
+      <tr><td>SWE-Bench Pro</td><td class="num"><b>61.6</b></td><td class="num">52.4</td></tr>
+      <tr><td>DeepSWE v1.1</td><td class="num">73.7</td><td class="num"><b>75.4</b></td></tr>
+      <tr><td>Humanity's Last Exam</td><td class="num">45.4</td><td class="num"><b>47</b></td></tr>
+      <tr><td>가격 (입력 / 출력, 1M 토큰)</td><td class="num"><b>$0.75 / $3.75</b></td><td class="num">$1.25 / $4.25</td></tr>
+    </table>
+    <p style="margin:10px 0 0;font-size:13.5px;color:var(--muted)">요약: 터미널·이슈 해결과 가격은 Gemini, 장기 자율 코딩과 종합 난제는 Muse Spark가 근소하게 앞섭니다. 구글은 여기에 보안 특화 Cyber 변형을 더해 차별화했습니다.</p>
+  </div>
+
+  <footer>
+    기준일 2026년 9월 3일. 수치는 구글 발표 및 아래 보도·평가 사이트를 종합한 것으로, 벤치마크 설정(thinking level 등)에 따라 차이가 있을 수 있습니다.
+    <ul>
+      <li>Google Blog, “Introducing Gemini 3.8 Flash and 3.8 Flash Cyber” (2026.09.02) · Google DeepMind Fairwind Program 페이지</li>
+      <li>9to5Google, The Register, Android Authority, Neowin, iClarified 보도 (2026.09.02)</li>
+      <li>이데일리 “구글, 3주 만에 ‘제미나이 3.8’ 출시” · 와우테일 “구글, 코딩·보안 특화 ‘제미나이 3.8 플래시’ 공개” (2026.09.03)</li>
+      <li>DataCamp, llm-stats, Artificial Analysis 벤치마크·가격 페이지</li>
+    </ul>
+  </footer>
+</div>
+</body>
+</html>
