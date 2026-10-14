@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMOC 붕괴와 넷제로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#06131c; --panel:#0c1f2c; --panel-2:#11293a; --line:#1d3a4f;
+    --text:#e8f4fa; --muted:#93afc0; --cold:#3fa9f5; --cold-2:#8fd3ff; --warm:#ff7a59; --warm-2:#ffb199;
+    --ok:#3ddc97; --amber:#f6c35b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.55}
+  a{color:var(--cold-2);text-decoration:none}
+  .page{max-width:1240px;margin:0 auto;padding:40px 28px 56px}
+
+  .hero{position:relative;overflow:hidden;border-radius:24px;padding:48px 48px 40px;background:
+    radial-gradient(900px 420px at 0% 0%,rgba(63,169,245,.42),transparent 60%),
+    radial-gradient(700px 420px at 100% 100%,rgba(255,122,89,.26),transparent 60%),
+    linear-gradient(160deg,#0b2233,#06131c);border:1px solid var(--line)}
+  .badge{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#d6efff;background:rgba(63,169,245,.2);border:1px solid rgba(143,211,255,.4);padding:6px 12px;border-radius:999px}
+  .hero h1{font-size:50px;line-height:1.12;margin:18px 0 10px;font-weight:900;letter-spacing:-.02em}
+  .hero h1 span{background:linear-gradient(90deg,#8fd3ff,#ffb199);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{font-size:19px;color:var(--muted);max-width:880px;margin:0 0 26px}
+  .meta-row{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:14px;color:#c9dfec}
+  .meta-row b{color:#fff}
+  .quote{margin-top:26px;padding:16px 20px;border-left:4px solid var(--cold-2);background:rgba(255,255,255,.04);border-radius:0 12px 12px 0;font-size:16.5px}
+  .quote small{display:block;color:var(--muted);margin-top:4px;font-size:13px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .stat .n{font-size:32px;font-weight:900;letter-spacing:-.02em;color:#fff;font-variant-numeric:tabular-nums}
+  .stat .n.cold{color:var(--cold-2)} .stat .n.warm{color:var(--warm-2)}
+  .stat .n small{font-size:15px;color:var(--muted);font-weight:500;margin-left:4px}
+  .stat .l{font-size:13px;color:var(--muted);margin-top:2px}
+
+  h2{font-size:24px;margin:38px 0 14px;font-weight:800;display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:8px;height:26px;border-radius:4px;background:linear-gradient(180deg,var(--cold),var(--warm))}
+  h2 .no{color:var(--muted);font-weight:700;font-size:18px}
+  .lead{color:var(--muted);font-size:15px;margin:-4px 0 14px;max-width:960px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+  .card h3{margin:0 0 8px;font-size:17px}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+  .card p + p{margin-top:8px}
+  .card ul,.card ol{margin:8px 0 0;padding-left:18px;color:#d3e6f1;font-size:14.5px}
+  .card li{margin:5px 0}
+  .tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(63,169,245,.15);color:var(--cold-2);border:1px solid rgba(63,169,245,.4);margin-bottom:8px}
+  .tag.warm{background:rgba(255,122,89,.14);color:var(--warm-2);border-color:rgba(255,122,89,.4)}
+  .tag.ok{background:rgba(61,220,151,.14);color:var(--ok);border-color:rgba(61,220,151,.4)}
+  .tag.amber{background:rgba(246,195,91,.14);color:var(--amber);border-color:rgba(246,195,91,.4)}
+
+  .tbl{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:6px 10px;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  td b{color:#fff}
+  td small{color:var(--muted)}
+  .c{color:var(--cold-2);font-weight:800;white-space:nowrap}
+  .w{color:var(--warm-2);font-weight:800;white-space:nowrap}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* seesaw bars */
+  .seesaw .row{display:grid;grid-template-columns:200px 1fr 90px;align-items:center;gap:12px;margin:12px 0}
+  .seesaw .name{font-size:14px;color:#d3e6f1}
+  .seesaw .name small{display:block;color:var(--muted);font-size:12px}
+  .seesaw .axis{position:relative;height:16px;background:#0a1824;border-radius:8px}
+  .seesaw .axis::after{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:#4d6a7f}
+  .seesaw .bar{position:absolute;top:0;height:100%;border-radius:8px}
+  .seesaw .bar.cold{right:50%;background:linear-gradient(270deg,var(--cold),#1d6fb0)}
+  .seesaw .bar.warm{left:50%;background:linear-gradient(90deg,var(--warm),#c9472b)}
+  .seesaw .val{font-weight:800;text-align:right;font-variant-numeric:tabular-nums;font-size:14px}
+  .scale{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:4px 0 0 212px;padding-right:102px}
+
+  .formula{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-size:19px;background:#081a26;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:10px 0;text-align:center;overflow-x:auto;white-space:nowrap}
+  .formula i{font-style:italic}
+  .formula .int{font-size:28px;vertical-align:middle}
+  .formula sub,.formula sup{font-size:12px}
+  .note{font-size:13px;color:var(--muted);margin-top:10px}
+  .callout{border:1px solid rgba(246,195,91,.4);background:rgba(246,195,91,.07);border-radius:14px;padding:14px 18px;margin-top:14px;font-size:14.5px;color:#f2e4c4}
+  .callout b{color:var(--amber)}
+
+  /* experiment matrix */
+  .matrix .row{display:grid;grid-template-columns:150px 1fr 120px;align-items:center;gap:12px;margin:10px 0}
+  .matrix .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;font-weight:700;color:#fff}
+  .matrix .code small{display:block;font-family:"Noto Sans KR",sans-serif;font-weight:500;color:var(--muted);font-size:12px}
+  .matrix .track{height:18px;border-radius:9px;background:#0a1824;overflow:hidden;position:relative}
+  .matrix .fill{height:100%;border-radius:9px;background:linear-gradient(90deg,#1d6fb0,var(--cold-2))}
+  .matrix .fill.free{background:repeating-linear-gradient(45deg,#2b5a78 0 8px,#3b7aa0 8px 16px)}
+  .matrix .fill.off{background:transparent;border:2px dashed var(--warm);width:100%!important}
+  .matrix .val{font-weight:800;text-align:right;font-variant-numeric:tabular-nums;font-size:14px}
+
+  .diagram{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .diagram svg{width:100%;height:auto;display:block}
+  .diagram figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  footer ul{margin:6px 0 0;padding-left:18px}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:14px}
+  .nav .btn{background:var(--panel);border:1px solid var(--line);padding:8px 14px;border-radius:10px;color:#fff}
+  .nav .btn:hover{border-color:var(--cold-2)}
+
+  @media (max-width:900px){
+    .stats,.grid-3,.grid-2{grid-template-columns:1fr 1fr}
+    .hero h1{font-size:36px}
+    .seesaw .row{grid-template-columns:140px 1fr 70px}
+    .scale{margin-left:152px;padding-right:82px}
+    .matrix .row{grid-template-columns:120px 1fr 92px}
+  }
+  @media (max-width:600px){
+    .page{padding:24px 16px 40px}
+    .stats,.grid-3,.grid-2{grid-template-columns:1fr}
+    .hero{padding:30px 22px}
+    .hero h1{font-size:30px}
+    .seesaw .row,.matrix .row{grid-template-columns:1fr 70px}
+    .seesaw .row .axis,.matrix .row .track{grid-column:1 / -1;grid-row:2}
+    .scale{margin-left:0;padding-right:0}
+    .formula{font-size:16px}
+  }
+  @media print{
+    .page{max-width:none;padding:0}
+    .nav{display:none}
+    h2{break-after:avoid}
+    .card,.tbl,.diagram{break-inside:avoid}
+    @page{size:A4 landscape;margin:12mm}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="nav">
+    <a class="btn" href="02-gemini-3-8-flash.html">← 이전: Gemini 3.8 Flash</a>
+    <span>3 / 3 · 기후 · AMOC</span>
+  </div>
+
+  <section class="hero">
+    <span class="badge">기후 모델링 · 연구 설계 노트</span>
+    <h1>대서양 자오면 순환(AMOC)의 <span>약화·붕괴와 넷제로</span></h1>
+    <p class="sub">북대서양에 담수를 넣어 AMOC를 약화·붕괴시키는 Hosing 실험에서 기온이 어떻게 반응하는지, 넷제로·탄소 순배출 마이너스(CDR) 경로에서 AMOC가 이미 티핑점을 넘었다면 무슨 일이 생기는지 정리하고, 이를 정량적으로 분리하기 위한 6종 실험을 설계합니다.</p>
+    <div class="meta-row">
+      <span>대상 <b>AMOC · 북대서양 심층수(NADW)</b></span>
+      <span>핵심 메커니즘 <b>염분-이류 피드백 · 양극 시소</b></span>
+      <span>실험 기간 <b>2025–2100 넷제로 경로</b></span>
+      <span>제어 방식 <b>담수 플럭스(Hosing) · 피드백 제어</b></span>
+    </div>
+    <div class="quote">
+      AMOC 붕괴는 열을 남북으로 다시 나누는 데 그치지 않습니다. 북반구의 해빙·구름 피드백이 남반구 온난화보다 강하게 작동해 <b>전지구 평균 기온도 내려갑니다.</b> 넷제로로 추가 온난화가 멈추면 이 냉각 신호가 가려지지 않고 그대로 드러납니다.
+      <small>이 노트의 핵심 요지</small>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="n cold">−5 ~ −10<small>°C 이상</small></div><div class="l">Hosing 시 북대서양 아한대 기온 변화</div></div>
+    <div class="stat"><div class="n cold">−0.2 ~ −1.0<small>°C</small></div><div class="l">전지구 평균 순 냉각 (산업화 이전 기준 Hosing)</div></div>
+    <div class="stat"><div class="n">≈0.52<small>Sv</small></div><div class="l">CESM1 준평형 실험에서 AMOC가 붕괴한 담수 유입량 (van Westen et al., 2024)</div></div>
+    <div class="stat"><div class="n warm">30 ~ 150<small>년+</small></div><div class="l">CO₂를 줄여도 AMOC 회복이 늦어지는 시간</div></div>
+  </div>
+
+  <!-- 1 -->
+  <h2><span class="no">01</span> 북대서양 담수 처방(Hosing) 실험의 기온 반응</h2>
+  <p class="lead">담수로 AMOC를 약화·붕괴시키면 <b>북반구 평균과 전지구 평균 기온이 모두 내려갑니다.</b> 북반구는 식고 남반구는 데워지는 양극 시소(Bipolar Seesaw)가 나타나지만, 북반구 냉각 폭이 훨씬 커서 전지구 평균도 음(−)의 편차를 보입니다.</p>
+  <div class="grid-2">
+    <div class="card seesaw">
+      <h3>지역별 기온 반응 (표준 Hosing, 범위 중앙값)</h3>
+      <div class="row"><div class="name">북대서양 아한대<small>−5 ~ −10°C 이상</small></div><div class="axis"><div class="bar cold" style="width:50%"></div></div><div class="val c">−7.5</div></div>
+      <div class="row"><div class="name">북반구 평균<small>−1.0 ~ −3.0°C</small></div><div class="axis"><div class="bar cold" style="width:13.3%"></div></div><div class="val c">−2.0</div></div>
+      <div class="row"><div class="name">전지구 평균<small>−0.2 ~ −1.0°C</small></div><div class="axis"><div class="bar cold" style="width:4%"></div></div><div class="val c">−0.6</div></div>
+      <div class="row"><div class="name">남반구 평균<small>+0.2 ~ +0.8°C</small></div><div class="axis"><div class="bar warm" style="width:3.3%"></div></div><div class="val w">+0.5</div></div>
+      <div class="scale"><span>−7.5°C</span><span>0</span><span>+7.5°C</span></div>
+      <p class="note">막대 길이는 각 범위의 중앙값을 같은 축척(±7.5°C)으로 나타낸 것입니다.</p>
+    </div>
+    <div class="tbl">
+      <table>
+        <tr><th>구분</th><th>주요 물리 메커니즘</th></tr>
+        <tr><td><b>북대서양 아한대</b></td><td>북향 해양 열수송(OHT) 급감, 심층 대류 정지, 해빙 급증에 따른 알베도·절연 효과</td></tr>
+        <tr><td><b>북반구 평균</b></td><td>북대서양 냉각 신호가 편서풍을 타고 유라시아와 북반구 중·고위도로 이류, 해빙-알베도 양의 피드백</td></tr>
+        <tr><td><b>남반구 평균</b></td><td>적도를 넘어 북쪽으로 가던 해양 열수송이 막혀 열대 남대서양·남극해에 열 축적</td></tr>
+        <tr><td><b>전지구 평균</b></td><td>북반구의 강한 복사 피드백(해빙·구름 알베도 증가)이 남반구 온난화를 압도해 행성 전체가 순 에너지 손실</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3 style="margin:22px 0 10px;font-size:18px">단순 ‘열 재분배’인데 전지구 평균이 내려가는 이유: 복사 피드백의 비대칭</h3>
+  <div class="grid-3">
+    <div class="card">
+      <span class="tag">해빙-알베도</span>
+      <h3>해빙 남하 → 반사율 상승</h3>
+      <p>GIN 해역·래브라도해가 식으면 해빙이 남쪽으로 넓어져 태양 단파복사를 더 많이 반사하고, 해양-대기 열교환을 막아(절연 효과) 겨울철 지표 기온(SAT)을 크게 떨어뜨립니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag">하층운</span>
+      <h3>층적운 증가 → 행성 알베도 상승</h3>
+      <p>북대서양·아열대 해수면 온도가 내려가면 대기 하층 정적 안정도가 높아져 해양성 층적운이 늘고, 행성 알베도가 올라갑니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag">수증기·플랑크</span>
+      <h3>대기 냉각 → 온실효과 약화</h3>
+      <p>육지가 넓은 북반구에서 대기가 빠르게 식으면서 수증기 보유량이 줄고, 전지구 온실효과가 약해집니다.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>배경 기후에 따라 해석이 달라집니다.</b> 산업화 이전 통제 실험(Pre-industrial Control)에 담수를 넣으면 북반구·전지구 기온이 <b>절대값으로</b> 내려갑니다. 반면 SSP처럼 온실가스가 늘어나는 실험과 결합하면 전지구 기온 자체는 오르고, 담수를 넣지 않은 기준 실험과의 차이(ΔT = T<sub>meltwater</sub> − T<sub>control</sub>)로 보면 북대서양 Warming hole과 함께 <b>전지구 온난화를 약 0.2~0.5°C 늦추는 상대적 냉각</b>으로 나타납니다.
+  </div>
+
+  <!-- 2 -->
+  <h2><span class="no">02</span> 넷제로 상태에서 AMOC가 이미 티핑점을 넘었다면</h2>
+  <p class="lead">넷제로로 온실가스 복사 강제력이 평형으로 가는데 AMOC가 염분-이류 피드백 임계점을 넘어 비가역적 붕괴(Off-mode)에 들어가면, <b>배경 온난화(+ΔT<sub>AGW</sub>)와 AMOC 붕괴 냉각(−ΔT<sub>AMOC</sub>)이 비대칭적으로 겹칩니다.</b> 추가 온난화가 멈췄기 때문에 AMOC 냉각이 수십 년에 걸쳐 그대로 드러납니다.</p>
+  <div class="tbl">
+    <table>
+      <tr><th>지역</th><th>넷제로 단독 (AMOC 유지)</th><th>AMOC 붕괴로 인한 추가 변화</th><th>산업화 이전 대비 최종 상태</th></tr>
+      <tr><td><b>전지구 평균</b></td><td class="num">+1.8°C에서 안정화 <small>(ZEC ≈ 0)</small></td><td class="c">−0.3 ~ −0.8°C</td><td><b class="num">+1.0 ~ +1.5°C</b> <small>표면적 온난화 완화</small></td></tr>
+      <tr><td><b>남반구 평균</b></td><td class="num">≈ +1.4°C 안정화 <small>(전지구·북반구 값에서 역산)</small></td><td class="w">+0.3 ~ +0.7°C</td><td><b class="num">+1.7 ~ +2.1°C</b> <small>온난화 가속·지속</small></td></tr>
+      <tr><td><b>북반구 평균</b></td><td class="num">≈ +2.2°C 안정화</td><td class="c">−1.5 ~ −2.5°C</td><td><b class="num">−0.3 ~ +0.7°C</b> <small>온난화 대부분 상쇄</small></td></tr>
+      <tr><td><b>북대서양·서유럽·북유럽</b></td><td class="num">+2.0 ~ +3.0°C</td><td class="c">−5.0 ~ −10.0°C 이상</td><td><b class="num">−2 ~ −8°C</b> <small>산업화 이전보다 절대적으로 추움</small></td></tr>
+    </table>
+  </div>
+  <p class="note">넷제로 정점 +1.8°C를 가정한 개념적 추정입니다. 최종 상태 열은 앞의 두 열을 단순 합산한 범위입니다.</p>
+
+  <div class="grid-3" style="margin-top:14px">
+    <div class="card">
+      <span class="tag warm">대기 대순환</span>
+      <h3>남북 온도 경도 급증 → 겨울 폭풍 강화</h3>
+      <p>열대·아열대는 따뜻한데(+1.5°C 이상) 북대서양 고위도만 급랭하면서 중위도 경압 불안정이 커집니다. 제트기류와 서유럽 겨울철 극한 폭풍이 강해집니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag warm">수문 순환</span>
+      <h3>ITCZ 남하 → 몬순 약화</h3>
+      <p>북반구 냉각·남반구 온난화로 해들리 순환이 바뀌고 열대 수렴대(ITCZ)가 남쪽으로 이동합니다. 사헬·인도·동아시아 여름 몬순 강수가 급감하고 아마존 건기가 길어지는 반면, 남반구 열대·아열대는 호우가 늘어납니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag warm">유럽 여름</span>
+      <h3>추워진 바다, 더 뜨거운 내륙</h3>
+      <p>차가워진 북대서양에서 오는 수증기가 줄고 블로킹 고기압이 발달하면서, 유럽 내륙의 여름철 건조화와 폭염은 오히려 지속되거나 악화될 수 있습니다.</p>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:14px">
+    <div class="card">
+      <span class="tag">해양</span>
+      <h3>역학적 해수면 상승</h3>
+      <p>지균 평형 경사가 무너지면서 북미 동해안과 유럽 연안의 해수면이 <b>50~80cm 이상</b> 추가로 올라갈 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag">탄소 순환</span>
+      <h3>해양 탄소 흡수원 약화</h3>
+      <p>NADW 형성이 멈추면 물리적 탄소 펌프가 약해져 대기 CO₂가 약 <b>15~30ppm</b> 다시 오르려는 양의 피드백이 생길 수 있습니다. <small>(부호와 크기는 모델에 따라 차이가 큼)</small></p>
+    </div>
+    <div class="card">
+      <span class="tag">빙상</span>
+      <h3>남극 빙상 불안정성 가속</h3>
+      <p>남극해 아표층에 열이 쌓여 서남극 빙상(WAIS) 기저 용해가 빨라집니다.</p>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <h2><span class="no">03</span> 탄소 순배출 마이너스(CDR)에서의 이력 현상과 회복 조건</h2>
+  <div class="grid-2">
+    <figure class="diagram" style="margin:0">
+      <svg viewBox="0 0 560 330" role="img" aria-label="AMOC 쌍안정 이력 곡선: 담수 강제력을 늘리면 F1에서 붕괴하고, 되돌릴 때는 더 낮은 F2에서야 회복한다">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#93afc0"/></marker>
+          <marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8fd3ff"/></marker>
+          <marker id="aw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ff7a59"/></marker>
+        </defs>
+        <!-- axes -->
+        <line x1="60" y1="290" x2="540" y2="290" stroke="#4d6a7f" stroke-width="1.5" marker-end="url(#ah)"/>
+        <line x1="60" y1="290" x2="60" y2="20" stroke="#4d6a7f" stroke-width="1.5" marker-end="url(#ah)"/>
+        <text x="540" y="314" fill="#93afc0" font-size="13" text-anchor="end">담수 강제력 F<tspan font-size="10" dy="3">H</tspan></text>
+        <text x="20" y="160" fill="#93afc0" font-size="13" transform="rotate(-90 20 160)" text-anchor="middle">AMOC 강도 (Sv)</text>
+        <!-- F_H = 0 line -->
+        <line x1="200" y1="30" x2="200" y2="290" stroke="#f6c35b" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <text x="200" y="308" fill="#f6c35b" font-size="12" text-anchor="middle">F<tspan font-size="9" dy="3">H</tspan><tspan dy="-3"> = 0</tspan></text>
+        <!-- on branch -->
+        <path d="M70,70 C200,78 320,95 400,130" fill="none" stroke="#8fd3ff" stroke-width="3.5"/>
+        <!-- unstable middle -->
+        <path d="M400,130 C340,175 230,225 140,250" fill="none" stroke="#93afc0" stroke-width="1.5" stroke-dasharray="5 5"/>
+        <!-- off branch -->
+        <path d="M140,262 C250,268 400,272 520,274" fill="none" stroke="#ff7a59" stroke-width="3.5"/>
+        <!-- collapse jump -->
+        <line x1="400" y1="136" x2="400" y2="262" stroke="#8fd3ff" stroke-width="2" stroke-dasharray="2 4" marker-end="url(#ac)"/>
+        <!-- recovery jump -->
+        <line x1="140" y1="258" x2="140" y2="78" stroke="#ff7a59" stroke-width="2" stroke-dasharray="2 4" marker-end="url(#aw)"/>
+        <!-- labels -->
+        <text x="400" y="304" fill="#e8f4fa" font-size="12" text-anchor="middle">F₁ 붕괴점</text>
+        <text x="140" y="304" fill="#e8f4fa" font-size="12" text-anchor="middle">F₂ 회복점</text>
+        <text x="245" y="70" fill="#8fd3ff" font-size="13" font-weight="700">On-mode (강한 AMOC)</text>
+        <text x="520" y="258" fill="#ff7a59" font-size="13" font-weight="700" text-anchor="end">Off-mode (붕괴)</text>
+        <text x="215" y="178" fill="#93afc0" font-size="11">불안정 분지</text>
+        <circle cx="200" cy="76" r="5" fill="#8fd3ff"/>
+        <circle cx="200" cy="267" r="5" fill="#ff7a59"/>
+        <text x="208" y="40" fill="#f6c35b" font-size="11">F₂ &lt; 0이면 F<tspan font-size="8" dy="2">H</tspan><tspan dy="-2"> = 0에서도 두 상태 공존</tspan></text>
+      </svg>
+      <figcaption>쌍안정 이력 개념도. 담수를 늘리면 F₁에서 Off-mode로 떨어지고, 되돌릴 때는 F₂까지 내려가야 다시 켜집니다. F₂가 0보다 작으면 담수를 0으로 꺼도 Off-mode가 유지됩니다.</figcaption>
+    </figure>
+    <div class="card">
+      <h3>CO₂를 빼도 바로 회복되지 않는 이유</h3>
+      <ol>
+        <li><b>염분-이류 피드백의 잠금 효과</b> — 아열대에서 아한대(SPNA)로 가던 고염분수 유입이 끊긴 채, 표층의 저염분 캡과 해빙이 해양-대기 열교환을 막아 심층 대류 재개를 방해합니다.</li>
+        <li><b>시간 규모의 불일치</b> — 표층 성층 해소와 밀도 회복은 느린 수직 혼합과 대규모 수송에 달려 있어 <b>30~150년 이상</b> 지연됩니다.</li>
+        <li><b>쌍안정성</b> — 남위 34°S 담수 수송 지표 F<sub>ovS</sub> &lt; 0이면, F₁을 넘어 Off-mode로 떨어진 뒤 훨씬 낮은 F₂까지 강제력을 되돌려야 다시 가동됩니다.</li>
+      </ol>
+      <div class="callout" style="margin-top:14px">
+        <b>회복 시 ‘AMOC 오버슈트’</b> — AMOC가 약한 동안 증발이 강수보다 많은(E−P &gt; 0) 아열대 대서양에 고온·고염 해수가 쌓입니다. CDR 후반 대류가 다시 시작되는 순간 이 물이 북쪽으로 한꺼번에 이류되면서 염분-이류 피드백을 폭발적으로 가동해, 초기 강도를 넘어서는 오버슈트가 생깁니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl" style="margin-top:14px">
+    <table>
+      <tr><th>실험 구도</th><th>대표 실험·문헌</th><th>AMOC 반응과 이력 특성</th><th>회복 시간·최종 상태</th></tr>
+      <tr>
+        <td><b>CO₂ 증가 후 제거</b><br><small>1pctCO2-cdr</small></td>
+        <td>CMIP6 CDRMIP 프로토콜 · CESM1 28-멤버 앙상블 (An et al., 2021) · NorESM 오버슈트 실험 (Schwinger et al., 2022)</td>
+        <td><span class="tag amber">속도 의존적 이력</span><br>CO₂ 정점 이후에도 30~80년간 약화·정체가 이어지다 급격히 반등</td>
+        <td><b>강한 오버슈트 후 안정화</b> — 초기보다 10~30% 강해진 뒤 수백 년에 걸쳐 원래 수준으로 수렴</td>
+      </tr>
+      <tr>
+        <td><b>담수 결합 + Ramp-down</b><br><small>준평형 Hosing</small></td>
+        <td>Jackson &amp; Wood (2018) · van Westen et al. (2024) · Lohmann et al. (2024)</td>
+        <td><span class="tag warm">진짜 쌍안정 이력</span><br>안장-노드 분기점을 넘어 완전히 붕괴하면 강제력을 되돌려도 Off-mode 유지</td>
+        <td><b>비가역적 고착 또는 수백~수천 년 지연</b> — 산업화 이전보다 낮은 강제력이나 수백 년간의 아열대 염분 축적이 필요</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 4 -->
+  <h2><span class="no">04</span> 준평형 Hosing + Ramp-down 핵심 문헌</h2>
+  <p class="lead">일시적 충격(Transient shock)과 안장-노드 분기(Saddle-node bifurcation)에 의한 진짜 비가역적 이력을 구분하려는 연구들입니다.</p>
+  <div class="grid-3">
+    <div class="card">
+      <span class="tag">GRL · 2018</span>
+      <h3>Jackson &amp; Wood</h3>
+      <p><b>HadGEM3-GC2</b> · 해양 0.25° (eddy-permitting)</p>
+      <ul>
+        <li>50°N~베링해협에 0.1~1.0 Sv 담수를 20년 또는 50년 처방한 뒤 중단</li>
+        <li><b>시간 의존적 이력</b>: 충분히 약해진 AMOC는 담수를 꺼도 회복하지 못하고 최대 약 300년 동안 약한 상태에 머묾</li>
+        <li>총 담수량과 약화 폭이 클수록, 래브라도해 대류가 꺼질수록 회복 가능성이 낮아짐</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag">Sci. Adv. · 2024</span>
+      <h3>van Westen, Kliphuis &amp; Dijkstra</h3>
+      <p><b>CESM1 (CAM4/POP2)</b> · 표준 1° 해상도</p>
+      <ul>
+        <li>담수 유입을 3×10⁻⁴ Sv/년으로 아주 천천히 늘림 (최대 0.66 Sv, 증가·감소 합쳐 약 4,400년 적분)</li>
+        <li>모델 연도 약 1750년, F<sub>H</sub> ≈ 0.52 Sv에서 약 100년 만에 AMOC가 ~10 Sv → 0 Sv 근처로 급락</li>
+        <li>완전 결합 GCM에서 처음으로 티핑 과정을 직접 재현. 티핑 직전 F<sub>ovS</sub>가 <b>최솟값</b>을 찍는 물리 기반 조기경보 신호 제시</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag">Sci. Adv. · 2024</span>
+      <h3>Lohmann et al.</h3>
+      <p><b>전지구 원시방정식 해양 모델</b> · 저해상도, 장기 다중 적분</p>
+      <ul>
+        <li>준평형 담수 Ramp-up/down과 초기조건 섭동 앙상블로 안정 상태 탐색 (총 275만 모델 연도 이상)</li>
+        <li><b>다중 안정성</b>: 일부 매개변수 영역에서 최대 9개의 안정 상태 공존</li>
+        <li>붕괴 전 여러 차례 ‘중간 티핑’을 거치는 계단식 경로. 경로는 담수 증가 속도에 따라 달라져 안전 한계 설정이 어려워짐</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>남위 34°S 자오면 역전 담수 수송 지표 F<sub>ovS</sub></h3>
+    <div class="formula">
+      <i>F</i><sub>ovS</sub> = − <span style="display:inline-block;vertical-align:middle;text-align:center;line-height:1.1"><span style="display:block;border-bottom:1px solid currentColor;padding:0 4px">1</span><span style="display:block;padding:0 4px"><i>S</i><sub>0</sub></span></span>
+      <span class="int">∫</span><sub style="vertical-align:-10px">−<i>H</i></sub><sup style="vertical-align:14px;margin-left:-6px">0</sup>
+      <i>v̄</i>*(<i>z</i>) ⟨<i>S</i>(<i>z</i>) − <i>S</i><sub>0</sub>⟩ <i>dz</i>
+    </div>
+    <div class="grid-3" style="gap:10px">
+      <p><b style="color:#fff">v̄*</b> — 동서 적분한 자오면 유속에서 순 바로트로픽 성분을 뺀 값</p>
+      <p><b style="color:#fff">⟨S(z) − S₀⟩</b> — 동서 평균 염분 편차, 기준 염분 S₀ = 35 psu</p>
+      <p><b style="color:#fff">해석</b> — 회복점 F₂가 F<sub>H</sub> = 0보다 음수 쪽에 있으면(F₂ &lt; 0, 현재 F<sub>ovS</sub> &lt; 0에 대응) 담수를 0으로 되돌려도 스스로 회복하지 못합니다.</p>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <h2><span class="no">05</span> 신규 실험 설계: 넷제로 경로의 단계별 AMOC 제어 (2025–2100)</h2>
+  <p class="lead"><b>목표</b> — 넷제로 감축 경로에서 <b>순수 온실가스 복사 강제력 효과</b>와 <b>AMOC 약화 단계별(0·25·50·75·100%) 역학 효과</b>를 정량적으로 분리하고, 기온·수문 순환이 어디서 비선형적으로 꺾이는지 찾습니다.</p>
+
+  <div class="grid-2">
+    <div class="card matrix">
+      <h3>6종 실험 매트릭스 · 2100년 AMOC 목표 강도</h3>
+      <div class="row"><div class="code">NZ_Free<small>기준 (Control)</small></div><div class="track"><div class="fill free" style="width:77.5%"></div></div><div class="val">자율 반응<br><small style="color:var(--muted);font-weight:500">15~30% 약화</small></div></div>
+      <div class="row"><div class="code">NZ_Fix0<small>0% 약화 · 고정</small></div><div class="track"><div class="fill" style="width:100%"></div></div><div class="val">≈18 Sv</div></div>
+      <div class="row"><div class="code">NZ_Weak25<small>25% 약화</small></div><div class="track"><div class="fill" style="width:75%"></div></div><div class="val">≈13.5 Sv</div></div>
+      <div class="row"><div class="code">NZ_Weak50<small>50% 약화</small></div><div class="track"><div class="fill" style="width:50%"></div></div><div class="val">≈9.0 Sv</div></div>
+      <div class="row"><div class="code">NZ_Weak75<small>75% 약화</small></div><div class="track"><div class="fill" style="width:25%"></div></div><div class="val">≈4.5 Sv</div></div>
+      <div class="row"><div class="code">NZ_Weak100<small>붕괴 · Off-mode</small></div><div class="track"><div class="fill off"></div></div><div class="val w">≈0 Sv</div></div>
+      <p class="note">막대는 현재 강도(≈18 Sv) 대비 비율. NZ_Free 빗금은 15~30% 자연 약화 범위의 중앙값입니다.</p>
+    </div>
+    <div class="tbl">
+      <table>
+        <tr><th>실험</th><th>제어 방식</th><th>과학적 역할</th></tr>
+        <tr><td><b>NZ_Free</b></td><td>인위적 강제 없음 (표준 결합)</td><td>넷제로 경로의 기본 기후 반응 기준선</td></tr>
+        <tr><td><b>NZ_Fix0</b></td><td>부력 보정 (음의 담수 플럭스·염분 주입)</td><td><b>순수 복사·열역학 넷제로 효과</b>. NZ_Free − NZ_Fix0 = 자연 AMOC 약화의 영향</td></tr>
+        <tr><td><b>NZ_Weak25</b></td><td>약한 단계적 Hosing</td><td>NZ_Free와 비슷하거나 약간 더 약한 상태와 비교</td></tr>
+        <tr><td><b>NZ_Weak50</b></td><td>중간 강도 Ramp-up Hosing</td><td>중위도 제트, Warming hole, 몬순 약화가 본격화되는 구간</td></tr>
+        <tr><td><b>NZ_Weak75</b></td><td>강한 Ramp-up Hosing</td><td>아한대 심층 대류 대부분 정지, 해빙 급팽창 (티핑 직전·진입)</td></tr>
+        <tr><td><b>NZ_Weak100</b></td><td>임계 이상 Hosing</td><td>완전 붕괴 시 넷제로 온난화 상쇄 폭과 극한 수문 기후 재편</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3 style="margin:22px 0 10px;font-size:18px">모델 안에서 AMOC를 고정·약화시키는 방법</h3>
+  <div class="grid-3">
+    <div class="card">
+      <span class="tag">방법 A</span>
+      <h3>선형 증가 담수 플럭스 처방</h3>
+      <p>북대서양(50°N–70°N 또는 그린란드 주변)에 F<sub>H</sub>(t) = α·t를 처방합니다. 파일럿 실험으로 2100년 완전 붕괴를 만드는 α<sub>100</sub>을 찾은 뒤, 반응 곡선에 맞춰 α<sub>25</sub>·α<sub>50</sub>·α<sub>75</sub>를 정합니다.</p>
+      <p>NZ_Fix0는 온난화에 따른 자연 약화를 상쇄하도록 약 −0.05 ~ −0.15 Sv의 음의 담수 플럭스(염분 주입)를 넣습니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag ok">방법 B · 권장</span>
+      <h3>피드백 제어 기반 동적 Hosing</h3>
+      <p>매 주기 계산한 AMOC 강도 Ψ(t)와 목표 궤적 Ψ<sub>target</sub>(t)의 오차로 담수량을 갱신합니다.</p>
+      <div class="formula" style="font-size:16px"><i>F</i><sub>H</sub>(<i>t</i>) = <i>F</i><sub>H</sub>(<i>t</i>−1) + <i>γ</i> [ Ψ(<i>t</i>) − Ψ<sub>target</sub>(<i>t</i>) ]</div>
+      <p>AMOC가 목표보다 강하면 담수를 더 넣는 적분(I) 제어로, PID의 가장 단순한 형태입니다. 50%→75%처럼 비선형 구간에서도 목표 약화율을 정확히 맞출 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <span class="tag warm">방법 C · 주의</span>
+      <h3>3차원 염분 너징</h3>
+      <p>수온까지 너징하면 인위적인 열원·열침이 생겨 전지구 기온 분석이 왜곡됩니다. 기온 반응을 볼 때는 열 예산을 건드리지 않는 <b>염분·담수 플럭스 제어(방법 A 또는 B)</b>가 맞습니다.</p>
+    </div>
+  </div>
+
+  <h3 style="margin:22px 0 10px;font-size:18px">분석 틀과 핵심 질문</h3>
+  <div class="grid-2">
+    <div class="card">
+      <span class="tag">요인 분리</span>
+      <h3>신호 분해 (Signal Decomposition)</h3>
+      <table>
+        <tr><td>넷제로 전체 반응</td><td class="num"><b>NZ_Free</b></td></tr>
+        <tr><td>순수 복사·열역학 효과</td><td class="num"><b>NZ_Fix0</b></td></tr>
+        <tr><td>자연 AMOC 약화의 영향</td><td class="num"><b>NZ_Free − NZ_Fix0</b></td></tr>
+        <tr><td>X% 약화의 순수 역학 효과</td><td class="num"><b>NZ_WeakX − NZ_Fix0</b></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <span class="tag amber">비선형 임계점</span>
+      <h3>AMOC가 선형으로 줄 때 기후도 선형으로 변할까?</h3>
+      <p>AMOC를 25%씩 선형으로 줄일 때 해빙 면적, 중위도 폭풍 트랙, ITCZ 남하, 몬순 가뭄이 선형으로 변하는지, 아니면 특정 구간(예: 50~75%)에서 급격한 레짐 시프트가 일어나는지 규명합니다.</p>
+      <ul>
+        <li>전지구 평균 염분 보존을 위한 타 해역 염분 보상(Salt compensation) 적용 여부</li>
+        <li>내부 변동성 분리를 위한 초기조건 마이크로 앙상블(3~5 멤버) 구성</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    작성 2026년 10월. 1·2·5장의 기온 범위는 문헌 범위를 바탕으로 한 개념적 추정이며, 모델·Hosing 크기·배경 기후에 따라 크게 달라집니다. 4장 문헌 세부 사항은 원문과 학회 발표 자료로 확인했습니다.
+    <ul>
+      <li>van Westen, R. M., Kliphuis, M., &amp; Dijkstra, H. A. (2024). Physics-based early warning signal shows that AMOC is on tipping course. <i>Science Advances</i>, 10(6), eadk1189.</li>
+      <li>Lohmann, J., Dijkstra, H. A., Jochum, M., Lucarini, V., &amp; Ditlevsen, P. D. (2024). Multistability and intermediate tipping of the Atlantic Ocean circulation. <i>Science Advances</i>, 10(12), eadi4253.</li>
+      <li>Jackson, L. C., &amp; Wood, R. A. (2018). Hysteresis and resilience of the AMOC in an eddy-permitting GCM. <i>Geophysical Research Letters</i>, 45, 8547–8556.</li>
+      <li>An, S.-I. et al. (2021). Global cooling hiatus driven by an AMOC overshoot in a carbon dioxide removal scenario. <i>Earth's Future</i>, 9.</li>
+      <li>Schwinger, J. et al. (2022). Emit now, mitigate later? Earth system reversibility under overshoots of different magnitudes and durations. <i>Earth System Dynamics</i>, 13.</li>
+    </ul>
+  </footer>
+</div>
+</body>
+</html>
